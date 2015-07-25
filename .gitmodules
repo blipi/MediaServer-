@@ -1,0 +1,3 @@
+[submodule "dep/ModernGameEngine"]
+	path = dep/ModernGameEngine
+	url = https://github.com/blipi/ModernGameEngine.git
