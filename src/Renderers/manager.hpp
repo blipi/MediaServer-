@@ -10,7 +10,8 @@ class Renderer
     friend RendererManager;
 
 private:
-    std::map<std::string, std::vector<std::string> > Values;
+	std::string Name;
+    std::map<std::string, std::vector<std::string> > Properties;
 };
 
 class RendererManager
@@ -33,7 +34,8 @@ public:
     void init();
 
 private:
-    void parse(std::string root, std::string file);
+	void parse(std::string root, std::string file);
+	void registerProperty(Renderer* renderer, std::string key, std::string value);
 
 private:
     std::string _rootPath;
@@ -42,18 +44,26 @@ private:
 
 #define gRM RendererManager::get()
 
+#if defined(WIN32) || defined(_WIN32) 
+	#define PATH_SEPARATOR "\\" 
+#else 
+	#define PATH_SEPARATOR "/" 
+#endif 
+
 
 void RendererManager::setRootPath(std::string rootPath)
 {
-    size_t last = rootPath.rfind("/");
+	size_t last = rootPath.rfind(PATH_SEPARATOR);
     if (last != std::string::npos)
     {
         rootPath = rootPath.substr(0, last + 1);
     }
     else
     {
-        rootPath += "/";
+		rootPath += PATH_SEPARATOR;
     }
 
-    _rootPath = rootPath;
+
+	printf("Root set to: %s\n", rootPath.c_str());
+	_rootPath = rootPath;
 }

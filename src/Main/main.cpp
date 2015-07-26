@@ -11,7 +11,7 @@
 
 int main(int /* argc */, char** argv)
 {
-    NPT_LogManager::GetDefault().Configure("plist:.level=FINE;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=42");
+    //NPT_LogManager::GetDefault().Configure("plist:.level=FINE;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=42");
 
     gRM->setRootPath(argv[0]);
     gRM->init();
