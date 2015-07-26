@@ -1,65 +1,30 @@
-#include "PltUPnP.h"
-#include "PltFileMediaServer.h"
-
 #include <stdlib.h>
+#include <string>
+#include <iostream>
+#include <sstream>
 
-struct Options {
-    const char* path;
-    const char* friendly_name;
-    const char* guid;
-    NPT_UInt32  port;
-};
+#include <NptLogging.h>
 
-int
-main(int /* argc */, char** argv)
+#include "upnp.hpp"
+#include "manager.hpp"
+
+
+int main(int /* argc */, char** argv)
 {
-    // Setup options
-    Options options;
-    options.path     = "D:\\Media";
-    options.friendly_name = "Media File";
-    options.guid = NULL;
-    options.port = 8081;
+    NPT_LogManager::GetDefault().Configure("plist:.level=FINE;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=42");
 
-    // setup Neptune logging
-    NPT_LogManager::GetDefault().Configure("plist:.level=FINE;.handlers=ConsoleHandler;.ConsoleHandler.colors=on;.ConsoleHandler.filter=42");
+    gRM->setRootPath(argv[0]);
+    gRM->init();
 
-	/* for faster DLNA faster testing */
-    PLT_Constants::GetInstance().SetDefaultDeviceLease(NPT_TimeInterval(60.));
-
-    PLT_UPnP upnp;
-    PLT_DeviceHostReference device(
-        new PLT_FileMediaServer(
-            options.path,
-            options.friendly_name?options.friendly_name:"Platinum UPnP Media Server",
-            false,
-            options.guid, // NULL for random ID
-            (NPT_UInt16)options.port)
-            );
-
-    NPT_List<NPT_IpAddress> list;
-    NPT_CHECK_SEVERE(PLT_UPnPMessageHelper::GetIPAddresses(list));
-    NPT_String ip = list.GetFirstItem()->ToString();
-
-    device->m_ModelDescription = "Platinum File Media Server";
-    device->m_ModelURL = "http://www.plutinosoft.com/";
-    device->m_ModelNumber = "1.0";
-    device->m_ModelName = "Platinum File Media Server";
-    device->m_Manufacturer = "Plutinosoft";
-    device->m_ManufacturerURL = "http://www.plutinosoft.com/";
-
-    upnp.AddDevice(device);
-    NPT_String uuid = device->GetUUID();
-
-    NPT_CHECK_SEVERE(upnp.Start());
-    NPT_LOG_INFO("Press 'q' to quit.");
+    Upnp::Server::sendAlive();
+	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    Upnp::Server::listen();
 
     char buf[256];
     while (gets(buf)) {
         if (*buf == 'q')
             break;
     }
-
-    upnp.Stop();
 
     return 0;
 }

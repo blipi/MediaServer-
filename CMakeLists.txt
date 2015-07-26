@@ -35,7 +35,7 @@ endif()
 option(CMAKE_INSTALL_PREFIX "Install location" "./Install")
 
 if( UNIX )
-    set (CMAKE_CXX_FLAGS "-std=c++11")
+    set (CMAKE_CXX_FLAGS "-std=c++11 -pthread")
     set (DEPENDENCIES pthread)
 elseif ( WIN32 )
     set (DEPENDENCIES ws2_32)

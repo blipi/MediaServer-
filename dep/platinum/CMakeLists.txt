@@ -3,6 +3,9 @@ project(upnp)
 if ( UNIX )
     set(SOURCES_OS Neptune/Source/System/Bsd/NptBsdSockets.cpp
     Neptune/Source/System/Bsd/NptBsdNetwork.cpp
+    Neptune/Source/System/StdC/NptStdcConsole.cpp
+    Neptune/Source/System/StdC/NptStdcFile.cpp
+    Neptune/Source/System/Posix/NptPosixFile.cpp
     Neptune/Source/System/Posix/NptPosixSystem.cpp
     Neptune/Source/System/Posix/NptSelectableMessageQueue.cpp
     Neptune/Source/System/Posix/NptPosixQueue.cpp
@@ -13,7 +16,7 @@ elseif ( WIN32 )
     set(SOURCES_OS
     Neptune/Source/System/Posix/NptPosixFile.cpp
     Neptune/Source/System/Bsd/NptBsdSockets.cpp
-    Neptune/Source/System/StdC/NptStdCFile.cpp
+    Neptune/Source/System/StdC/NptStdcFile.cpp
     Neptune/Source/System/Win32/NptWin32File.cpp
     Neptune/Source/System/Win32/NptWin32Console.cpp
     Neptune/Source/System/Win32/NptWin32Network.cpp
@@ -46,6 +49,7 @@ set(SOURCES Platinum/Source/Core/PltAction.cpp
             Platinum/Source/Core/PltTaskManager.cpp
             Platinum/Source/Core/PltThreadTask.cpp
             Platinum/Source/Core/PltUPnP.cpp
+            Platinum/Source/Devices/MediaRenderer/PltMediaRenderer.cpp
             Platinum/Source/Devices/MediaServer/PltDidl.cpp
             Platinum/Source/Devices/MediaServer/PltFileMediaServer.cpp
             Platinum/Source/Devices/MediaServer/PltMediaBrowser.cpp
