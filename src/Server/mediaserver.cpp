@@ -14,7 +14,7 @@ MediaServerPP::MediaServerPP():
 {
     // HACK: Hardcoded port
     _server = new PLT_HttpServer(NPT_IpAddress::Any, 8082);
-    _server->AddRequestHandler(new DescriptionFetch(), "/description/fetch");
+    _server->AddRequestHandler(new MainHandler(), "/", true);
     _server->Start();
 }
 

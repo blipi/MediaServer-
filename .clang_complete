@@ -13,13 +13,16 @@
 -I./dep/platinum/Platinum/Source/Devices/MediaServer
 -I./dep/platinum/Neptune/Source/Core
 
+-I./dep/pire
+-I./build/dep/pire
 -I./dep/crossguid
--I./dep/ohnet/Build/Include
 -I./dep/threadpool11/threadpool11/include
 
--L./dep/ohnet/Build/Obj/Posix/Release/
+
 -L./build/dep/threadpool11/threadpool11/
 -L./build/dep/platinum
--lohNet
+-I./build/dep/pire
+
 -lthreadpool11
 -lupnp
+-lpire

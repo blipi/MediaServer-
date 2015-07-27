@@ -1,6 +1,6 @@
 #include <PltHttpServer.h>
 
-class DescriptionFetch : public NPT_HttpRequestHandler
+class MainHandler : public NPT_HttpRequestHandler
 {
 public:
     NPT_Result SetupResponse(NPT_HttpRequest&              /*request*/,

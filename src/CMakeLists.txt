@@ -35,7 +35,8 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/dep/platinum/Platinum/Source/Devices/MediaServer
   ${CMAKE_SOURCE_DIR}/dep/platinum/Neptune/Source/Core
 
-  ${CMAKE_SOURCE_DIR}/dep/ohnet/Build/Include
+  ${CMAKE_SOURCE_DIR}/dep/pire
+  ${CMAKE_BINARY_DIR}/dep/pire
   ${CMAKE_SOURCE_DIR}/dep/crossguid
   ${CMAKE_SOURCE_DIR}/dep/threadpool11/threadpool11/include
 )
@@ -46,9 +47,9 @@ add_executable(MediaServerPP
 
 target_link_libraries(MediaServerPP
   ${DEPENDENCIES}
-  ${OHNET_LIBRARIES}
   ${UUID_LIBS}
   crossguid
   threadpool11
   upnp
+  pire
 )

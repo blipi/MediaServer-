@@ -1,0 +1,143 @@
+
+OBJDIR = obj
+SRCDIR = pire
+SAMPLESDIR = samples
+TOOLSDIR = tools
+TESTSDIR = tests
+
+PIRE_OBJS = \
+	$(OBJDIR)\classes.obj \
+	$(OBJDIR)\encoding.obj \
+	$(OBJDIR)\fsm.obj \
+	$(OBJDIR)\re_lexer.obj \
+	$(OBJDIR)\re_parser.obj \
+	$(OBJDIR)\scanner_io.obj \
+	$(OBJDIR)\utf8.obj \
+	$(OBJDIR)\capture.obj \
+	$(OBJDIR)\count.obj \
+	$(OBJDIR)\glyphs.obj \
+	$(OBJDIR)\null.obj \
+	$(OBJDIR)\easy.obj
+ 
+
+TEST_OBJS = \
+	$(OBJDIR)\pire_ut.obj \
+	$(OBJDIR)\inline_ut.obj \
+	$(OBJDIR)\count_ut.obj \
+	$(OBJDIR)\glyph_ut.obj \
+	$(OBJDIR)\capture_ut.obj \
+	$(OBJDIR)\easy_ut.obj \
+	$(OBJDIR)\cppunit.obj
+
+CXXFLAGS = -O2 -EHsc /D __SSE2__ /arch:SSE2 /MTd /Zi /I .
+LDFLAGS = /DEBUG
+
+all: pire.lib pigrep.exe blacklist.exe validator.exe bench.exe
+
+check: pire_test.exe
+	pire_test.exe
+
+pire.lib: config.h $(OBJDIR)\dir $(PIRE_OBJS)
+	lib /nologo /out:pire.lib $(PIRE_OBJS)
+
+config.h:
+	echo #pragma once > pire\config.h
+
+{$(SRCDIR)\}.cpp{$(OBJDIR)\}.obj:
+	$(CXX) -I$(SRCDIR) $(CXXFLAGS) /nologo /c /Fo$@ $<
+
+$(OBJDIR)\utf8.obj: $(SRCDIR)\stub\utf8.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ $**
+
+$(OBJDIR)\count.obj: $(SRCDIR)\extra\count.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /I $(SRCDIR) /Fo$@ $**
+
+$(OBJDIR)\capture.obj: $(SRCDIR)\extra\capture.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /I $(SRCDIR) /Fo$@ $**
+
+$(OBJDIR)\glyphs.obj: $(SRCDIR)\extra\glyphs.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /I $(SRCDIR) /Fo$@ $**
+
+$(OBJDIR)\null.obj: $(SRCDIR)\scanners\null.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /I $(SRCDIR) /Fo$@ $**
+
+$(OBJDIR)\easy.obj: $(SRCDIR)\easy.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /I $(SRCDIR) /Fo$@ $**
+
+pire_inline.exe: pire.lib $(OBJDIR)\pire_inline.obj
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) /nologo /Fe$@ $** pire.lib
+
+$(OBJDIR)\pire_inline.obj: $(SRCDIR)\inline.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . /I $(SRCDIR) /D YY_NO_UNISTD_H $**
+
+pigrep.exe: $(OBJDIR)\pigrep.obj
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) /nologo /Fe$@ $** pire.lib
+
+$(OBJDIR)\pigrep.obj: $(SAMPLESDIR)\pigrep\pigrep.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . $**
+
+blacklist.exe: $(OBJDIR)\blacklist.obj
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) /nologo /Fe$@ $** pire.lib
+
+$(OBJDIR)\blacklist.obj: $(SAMPLESDIR)\blacklist\blacklist.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . $**
+
+validator.exe: $(OBJDIR)\validator.obj
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) /nologo /Fe$@ $** pire.lib
+
+$(OBJDIR)\validator.obj: $(OBJDIR)\validator.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . $**
+
+$(OBJDIR)\validator.cpp: pire_inline.exe $(SAMPLESDIR)\inline\validator.cpp
+	pire_inline.exe < $(SAMPLESDIR)\inline\validator.cpp > $(OBJDIR)\validator.cpp 
+
+bench.exe: pire.lib $(OBJDIR)\bench.obj
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) /nologo /Fe$@ $** pire.lib
+
+$(OBJDIR)\bench.obj: $(TOOLSDIR)\bench\bench.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . $**
+
+pire_test.exe: pire.lib $(TEST_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) /nologo /Fe$@ $** pire.lib	
+
+$(OBJDIR)\pire_ut.obj: $(TESTSDIR)\pire_ut.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . /I $(SRCDIR) $**
+
+$(OBJDIR)\inline_ut.obj: $(OBJDIR)\inline_ut_2.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I $(TESTSDIR) /I $(SRCDIR) $**
+
+$(OBJDIR)\inline_ut_2.cpp: pire_inline.exe $(TESTSDIR)\inline_ut.cpp
+	pire_inline.exe < $(TESTSDIR)\inline_ut.cpp > $(OBJDIR)\inline_ut_2.cpp 
+
+$(OBJDIR)\count_ut.obj: $(TESTSDIR)\count_ut.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . /I $(SRCDIR) $**
+
+$(OBJDIR)\capture_ut.obj: $(TESTSDIR)\capture_ut.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . /I $(SRCDIR) $**
+
+$(OBJDIR)\glyph_ut.obj: $(TESTSDIR)\glyph_ut.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . /I $(SRCDIR) $**
+
+$(OBJDIR)\easy_ut.obj: $(TESTSDIR)\easy_ut.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . /I $(SRCDIR) $**
+
+$(OBJDIR)\cppunit.obj: $(TESTSDIR)\stub\cppunit.cpp
+	$(CXX) $(CXXFLAGS) /nologo /c /Fo$@ /I . /I $(SRCDIR) $**
+
+$(OBJDIR)\dir:
+	mkdir $(OBJDIR)
+	echo stamp >$(OBJDIR)\dir
+
+clean:
+	del pire\config.h
+	del $(PIRE_OBJS) pire.lib vc100.pdb
+	del pire_inline.exe pire_inline.ilk pire_inline.pdb $(OBJDIR)\pire_inline.obj
+	del pigrep.exe pigrep.ilk pigrep.pdb $(OBJDIR)\pigrep.obj
+	del blacklist.exe blacklist.ilk blacklist.pdb $(OBJDIR)\blacklist.obj
+	del validator.exe validator.ilk validator.pdb $(OBJDIR)\validator.cpp $(OBJDIR)\validator.obj
+	del bench.exe bench.ilk bench.pdb $(OBJDIR)\bench.obj
+	del $(TEST_OBJS) pire_test.exe pire_test.ilk pire_test.pdb $(OBJDIR)\inline_ut_2.cpp
+	del $(OBJDIR)\dir
+	rmdir $(OBJDIR)
+
+

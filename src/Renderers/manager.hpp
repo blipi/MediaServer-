@@ -1,6 +1,12 @@
-#include <vector>
+#include <algorithm>
+#include <functional>
 #include <map>
 #include <string>
+#include <vector>
+
+#include <NptSockets.h>
+#include <NptHttp.h>
+#include <pire/pire.h>
 
 
 class RendererManager;
@@ -10,8 +16,40 @@ class Renderer
     friend RendererManager;
 
 private:
+    Renderer():
+        _hasUserAgent(false),
+        _hasUserAgentEX(false)
+    { }
+
+    Renderer(Renderer* renderer) :
+        Renderer()
+    {
+        Name = renderer->Name;
+        Properties.insert(renderer->Properties.begin(), renderer->Properties.end());
+    }
+
+public:
 	std::string Name;
     std::map<std::string, std::vector<std::string> > Properties;
+
+private:
+    bool _hasUserAgent;
+    Pire::NonrelocScanner _userAgentRE;
+    bool _hasUserAgentEX;
+    Pire::NonrelocScanner _userAgentExRE;
+};
+
+struct SocketAddressComparator
+{
+    bool operator()(const NPT_SocketAddress& a, const NPT_SocketAddress& b) const
+    {
+        if (a.GetIpAddress().AsLong() < b.GetIpAddress().AsLong())
+        {
+            return a.GetPort() < b.GetPort();
+        }
+
+        return false;
+    }
 };
 
 class RendererManager
@@ -30,8 +68,12 @@ public:
         return _instance;
     }
 
-    inline void setRootPath(std::string rootPath);
+    void setRootPath(std::string rootPath);
     void init();
+
+    bool find(NPT_SocketAddress addr, Renderer*& renderer);
+    bool find(NPT_HttpHeaders& headers, Renderer*& renderer);
+    Renderer* defaultRenderer(NPT_SocketAddress addr);
 
 private:
 	void parse(std::string root, std::string file);
@@ -39,31 +81,15 @@ private:
 
 private:
     std::string _rootPath;
+    Renderer* _defaultRenderer;
     std::vector<Renderer*> _renderers;
+    std::map<NPT_SocketAddress, Renderer*, SocketAddressComparator> _clients;
 };
 
 #define gRM RendererManager::get()
 
-#if defined(WIN32) || defined(_WIN32) 
-	#define PATH_SEPARATOR "\\" 
-#else 
-	#define PATH_SEPARATOR "/" 
-#endif 
-
-
-void RendererManager::setRootPath(std::string rootPath)
-{
-	size_t last = rootPath.rfind(PATH_SEPARATOR);
-    if (last != std::string::npos)
-    {
-        rootPath = rootPath.substr(0, last + 1);
-    }
-    else
-    {
-		rootPath += PATH_SEPARATOR;
-    }
-
-
-	printf("Root set to: %s\n", rootPath.c_str());
-	_rootPath = rootPath;
-}
+#if defined(WIN32) || defined(_WIN32)
+	#define PATH_SEPARATOR "\\"
+#else
+	#define PATH_SEPARATOR "/"
+#endif
