@@ -122,20 +122,25 @@ SET (BUILT_SOURCES re_parser.h re_parser.cpp)
 SET (CLEANFILES    re_parser.h re_parser.cpp)
 
 BISON_TARGET(RE_PARSER
-    re_parser.y ${CMAKE_CURRENT_BINARY_DIR}/re_parser.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/re_parser.y"
+    "${CMAKE_CURRENT_BINARY_DIR}/re_parser.cpp"
     COMPILE_FLAGS "--defines=re_parser.h")
 
+MESSAGE ("Bisson:\n\t${BISON_RE_PARSER_OUTPUTS}")
+MESSAGE ("\tSuccess: ${BISON_RE_PARSER_DEFINED}")
+
 get_filename_component(BISON_INCLUDE ${BISON_RE_PARSER_OUTPUT_HEADER} DIRECTORY)
-FILE (COPY ${BISON_RE_PARSER_OUTPUT_HEADER}
-    DESTINATION ${BISON_INCLUDE}/re_parser.h)
+#FILE (COPY ${BISON_RE_PARSER_OUTPUT_HEADER}
+#    DESTINATION ${BISON_INCLUDE}/re_parser.h)
 
 include_directories(${pire_include}
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}
     ${BISON_INCLUDE})
 
-
-message(${pire_include})
+if (MSVC)
+    add_definitions(-D_XKEYCHECK_H)
+endif ()
 
 add_library(pire
     ${libpire_la_SOURCES}

@@ -6,7 +6,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 # SET a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Setting build type to 'Release' as none was specified.")
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
   # SET the possible values of build type for cmake-gui
 endif()
 
@@ -18,7 +18,7 @@ else()
   include_directories("ext/include")
 endif()
 
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "Perf")
+#set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "Perf")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
@@ -36,4 +36,7 @@ elseif(MSVC)
 endif()
 
 add_subdirectory(threadpool11)
-add_subdirectory(threadpool11_demo)
+
+if (${WITH_THREADPOOL11_DEMO})
+    add_subdirectory(threadpool11_demo)
+endif ()

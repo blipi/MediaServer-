@@ -4,6 +4,10 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <iostream>
+#include <cctype>
+#include <clocale>
+
 #include <NptFile.h>
 
 std::string& ltrim(std::string& s) {
@@ -57,6 +61,11 @@ void RendererManager::init()
     NPT_List<NPT_String> entries;
 	std::string root = _rootPath + "resources" PATH_SEPARATOR "renderers" PATH_SEPARATOR;
     NPT_File::ListDir(root.c_str(), entries);
+
+	if (entries.GetItemCount() == 0)
+	{
+		throw new std::runtime_error("No renderer configuration files found.");
+	}
 
     for (auto it = entries.GetFirstItem(); it; ++it)
     {
@@ -195,12 +204,12 @@ void RendererManager::registerProperty(Renderer* renderer, std::string key, std:
         if (key.compare("UserAgentSearch") == 0)
         {
             renderer->_hasUserAgent = true;
-            renderer->_userAgentRE = CompileRegexp((std::string("(") + value + ")").c_str());
+            renderer->_userAgentRE = CompileRegexp(value.c_str());
         }
         else if (key.compare("UserAgentAdditionalHeaderSearch") == 0)
         {
             renderer->_hasUserAgentEX = true;
-            renderer->_userAgentExRE = CompileRegexp((std::string("(") + value + ")").c_str());
+            renderer->_userAgentExRE = CompileRegexp(value.c_str());
         }
 
 		auto found = renderer->Properties.find(key);
