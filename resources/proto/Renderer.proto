@@ -1,0 +1,34 @@
+message Renderer {
+    required string name = 1;
+    optional string icon = 2;
+    optional uint32 priority = 3;
+
+    message UserAgent {
+        message ExtraHeader {
+            required string name = 1;
+            required string value = 2;
+        }
+
+        required string search = 1 [default = "Default"];
+        repeated ExtraHeader extraHeader = 2;
+    }
+    optional UserAgent userAgent = 4;
+
+    message Upnp {
+        repeated string searchFor = 1;
+    }
+    optional Upnp upnp = 5;
+
+    message Capabilities {
+        optional bool video = 1 [default = true];
+        optional bool audio = 2 [default = true];
+        optional bool image = 3 [default = true];
+    }
+    optional Capabilities capabilities = 6;
+
+    message DLNA {
+        optional bool seekByTime = 1 [default = false];
+        optional bool localizationRequired = 2 [default = false];
+        optional uint32 CBRVideoBitrate = 3 [default = 0];
+    }
+}

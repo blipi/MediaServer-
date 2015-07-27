@@ -18,7 +18,7 @@ NPT_Result MainHandler::SetupResponse(NPT_HttpRequest& request,
         renderer = gRM->defaultRenderer(context.GetRemoteAddress());
     }
 
-    printf("Renderer: %s\n", renderer->Name.c_str());
+    printf("Renderer: %s\n", renderer->name().c_str());
 
     NPT_HttpEntity* entity = response.GetEntity();
     entity->SetContentType("text/html;  charset=\"utf-8\"");

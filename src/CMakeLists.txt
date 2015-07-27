@@ -21,12 +21,71 @@ set(EPS_SRCS
   ${sources_Renderers}
 )
 
+find_package(Protobuf)
+IF (NOT ${PROTOBUF_FOUND})
+    FIND_LIBRARY(PROTOBUF_LIBRARY
+        NAMES protobuf libprotobuf
+        PATHS ${CMAKE_BINARY_DIR}/dep/protobuf
+        PATH_SUFFIXES
+            cmake
+            cmake/debug
+            cmake/release
+            cmake/Debug
+            cmake/Release
+        NO_DEFAULT_PATH
+    )
+
+    FIND_LIBRARY(PROTOBUF_PROTOC_LIBRARY
+        NAMES protoc libprotoc
+        PATHS ${CMAKE_BINARY_DIR}/dep/protobuf
+        PATH_SUFFIXES
+            cmake
+            cmake/debug
+            cmake/release
+            cmake/Debug
+            cmake/Release
+        NO_DEFAULT_PATH
+    )
+
+    FIND_PROGRAM(PROTOBUF_PROTOC_EXECUTABLE
+        NAMES protoc
+        PATHS ${CMAKE_BINARY_DIR}/dep/protobuf
+        PATH_SUFFIXES
+            cmake
+            cmake/debug
+            cmake/release
+            cmake/Debug
+            cmake/Release
+        NO_DEFAULT_PATH
+    )
+
+    IF (PROTOBUF_LIBRARY AND PROTOBUF_PROTOC_LIBRARY AND PROTOBUF_PROTOC_EXECUTABLE)
+        SET (PROTOBUF_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dep/protobuf/src)
+    ELSE ()
+        MESSAGE (FATAL_ERROR "Protobuf not found")
+    ENDIF ()
+
+ENDIF ()
+
+IF (${BUILD_PROTO_MESSAGES})
+    PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS "${CMAKE_SOURCE_DIR}/resources/proto/Renderer.proto")
+ELSE ()
+    SET (PROTO_SRCS
+        ${CMAKE_SOURCE_DIR}/resources/compiled/Renderer.pb.cc
+    )
+    SET (PROTOBUF_INCLUDE_DIR ${PROTOBUF_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/resources/compiled)
+ENDIF ()
+
+
 include_directories(
   ${CMAKE_BINARY_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Main
   ${CMAKE_CURRENT_SOURCE_DIR}/Server
   ${CMAKE_CURRENT_SOURCE_DIR}/Network
   ${CMAKE_CURRENT_SOURCE_DIR}/Renderers
+
+  ${PROTOBUF_INCLUDE_DIR}
 
   ${CMAKE_SOURCE_DIR}/dep/platinum/Platinum/Source/Core
   ${CMAKE_SOURCE_DIR}/dep/platinum/Platinum/Source/Platinum
@@ -43,11 +102,13 @@ include_directories(
 
 add_executable(MediaServerPP
   ${EPS_SRCS}
+  ${PROTO_SRCS}
 )
 
 target_link_libraries(MediaServerPP
   ${DEPENDENCIES}
   ${UUID_LIBS}
+  ${PROTOBUF_LIBRARY}
   crossguid
   threadpool11
   upnp

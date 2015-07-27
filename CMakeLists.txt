@@ -44,5 +44,8 @@ endif()
 # Add dependencies
 add_subdirectory(dep)
 
+# Add resources
+add_subdirectory(resources)
+
 # Add core sources
 add_subdirectory(src)

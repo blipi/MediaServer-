@@ -1,5 +1,8 @@
 #include "manager.hpp"
 
+#include <fcntl.h>
+#include <io.h>
+#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -9,6 +12,10 @@
 #include <clocale>
 
 #include <NptFile.h>
+
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/text_format.h>
+
 
 std::string& ltrim(std::string& s) {
   s.erase(s.begin(), std::find_if(s.begin(), s.end(),
@@ -94,32 +101,31 @@ bool RendererManager::find(NPT_HttpHeaders& headers, Renderer*& renderer)
         nullptr;
 
     for (auto it = _renderers.begin(); it != _renderers.end(); ++it)
-    {
-        Renderer* candidate = *it;
+	{
+		Renderer* candidate = *it;
+		if (!candidate->has_useragent())
+			continue;
 
-        if (userAgent && candidate->_hasUserAgent)
+		const Renderer::UserAgent& useragent = candidate->useragent();
+		if (userAgent && useragent.has_search())
         {
-            if (Matches(candidate->_userAgentRE, value, strlen(value)))
+			Pire::NonrelocScanner sc = CompileRegexp(useragent.search().c_str());
+            if (Matches(sc, value, strlen(value)))
             {
-                renderer = new Renderer(candidate);
+				renderer = new Renderer(*candidate);
                 return true;
             }
         }
-        else if (candidate->_hasUserAgentEX)
+        
+		for (int i = 0; i < useragent.extraheader_size(); ++i)
         {
-            const char* headerName = candidate->Properties["UserAgentAdditionalHeader"][0].c_str();
-            auto headerObj = headers.GetHeader(headerName);
-            const char* header = headerObj ?
-                headerObj->GetValue().GetChars() :
-                nullptr;
+			const Renderer::UserAgent::ExtraHeader header = useragent.extraheader(i);
 
-            if (header)
+			Pire::NonrelocScanner sc = CompileRegexp(header.name().c_str());
+			if (Matches(sc, header.value().c_str(), header.value().length()))
             {
-                if (Matches(candidate->_userAgentExRE, header, strlen(header)))
-                {
-                    renderer = new Renderer(candidate);
-                    return true;
-                }
+				renderer = new Renderer(*candidate);
+                return true;
             }
         }
     }
@@ -129,7 +135,7 @@ bool RendererManager::find(NPT_HttpHeaders& headers, Renderer*& renderer)
 
 Renderer* RendererManager::defaultRenderer(NPT_SocketAddress addr)
 {
-    Renderer* def = new Renderer(_defaultRenderer);
+	Renderer* def = new Renderer(*_defaultRenderer);
     _clients[addr] = def;
     return def;
 }
@@ -153,71 +159,27 @@ void RendererManager::setRootPath(std::string rootPath)
 
 void RendererManager::parse(std::string root, std::string file)
 {
-	printf("PARSING %s\n", file.c_str());
+	int fid = open((root + file).c_str(), O_RDONLY);
+	google::protobuf::io::FileInputStream fis(fid);
+	fis.SetCloseOnDelete(true);
 
-	std::string line;
-	std::ifstream fp(root + file);
-	if (fp.is_open())
+	Renderer* renderer = new Renderer();
+	if (google::protobuf::TextFormat::Parse(&fis, renderer))
 	{
-		Renderer* renderer = new Renderer();
+		printf("Added: %s\n", file.c_str());
 
-		while (std::getline(fp, line))
+		if (renderer->name().compare("Default") == 0)
 		{
-			if (line.compare(0, 1, "#") == 0)
+			if (_defaultRenderer)
 			{
-				continue;
+				throw new std::runtime_error("Can not have more than one default renderer.");
 			}
 
-			std::istringstream is_line(line);
-			std::string key;
-			if (std::getline(is_line, key, '='))
-			{
-				std::string value;
-				if (std::getline(is_line, value))
-				{
-					registerProperty(renderer, trim(key), trim(value));
-				}
-			}
+			_defaultRenderer = renderer;
 		}
-
-		fp.close();
-
-        if (renderer->Name.compare("Default") == 0)
-        {
-            _defaultRenderer = renderer;
-        }
-        else
-        {
-            _renderers.push_back(renderer);
-        }
-	}
-}
-
-void RendererManager::registerProperty(Renderer* renderer, std::string key, std::string value)
-{
-	if (key.compare("RendererName") == 0)
-	{
-		renderer->Name = value;
-	}
-	else
-	{
-        if (key.compare("UserAgentSearch") == 0)
-        {
-            renderer->_hasUserAgent = true;
-            renderer->_userAgentRE = CompileRegexp(value.c_str());
-        }
-        else if (key.compare("UserAgentAdditionalHeaderSearch") == 0)
-        {
-            renderer->_hasUserAgentEX = true;
-            renderer->_userAgentExRE = CompileRegexp(value.c_str());
-        }
-
-		auto found = renderer->Properties.find(key);
-		if (found == renderer->Properties.end())
+		else
 		{
-			renderer->Properties.insert(std::make_pair(key, std::vector<std::string>()));
+			_renderers.push_back(renderer);
 		}
-
-		renderer->Properties[key].push_back(value);
 	}
 }
