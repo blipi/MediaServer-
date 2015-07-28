@@ -33,6 +33,7 @@ if( NOT CMAKE_BUILD_TYPE )
 endif()
 
 option(CMAKE_INSTALL_PREFIX "Install location" "./Install")
+option(SKIP_PROTO_MESSAGES "Do not build protobuf messages, use supplied onces" OFF)
 
 if( UNIX )
     set (CMAKE_CXX_FLAGS "-std=c++11 -pthread")

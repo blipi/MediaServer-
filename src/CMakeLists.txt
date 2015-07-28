@@ -12,6 +12,7 @@ file(GLOB_RECURSE sources_Main      Main/*.cpp      Main/*.h)
 file(GLOB_RECURSE sources_Server    Server/*.cpp    Server/*.h)
 file(GLOB_RECURSE sources_Network   Network/*.cpp   Network/*.hpp)
 file(GLOB_RECURSE sources_Renderers Renderers/*.cpp Renderers/*.hpp)
+file(GLOB_RECURSE sources_Utils     Utils/*.cpp     Utils/*.hpp)
 
 set(EPS_SRCS
   ${EPS_SRCS}
@@ -19,6 +20,7 @@ set(EPS_SRCS
   ${sources_Server}
   ${sources_Network}
   ${sources_Renderers}
+  ${sources_Utils}
 )
 
 find_package(Protobuf)
@@ -67,7 +69,7 @@ IF (NOT ${PROTOBUF_FOUND})
 
 ENDIF ()
 
-IF (${BUILD_PROTO_MESSAGES})
+IF (NOT ${SKIP_PROTO_MESSAGES})
     PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS "${CMAKE_SOURCE_DIR}/resources/proto/Renderer.proto")
 ELSE ()
     SET (PROTO_SRCS
@@ -84,6 +86,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/Server
   ${CMAKE_CURRENT_SOURCE_DIR}/Network
   ${CMAKE_CURRENT_SOURCE_DIR}/Renderers
+  ${CMAKE_CURRENT_SOURCE_DIR}/Utils
 
   ${PROTOBUF_INCLUDE_DIR}
 

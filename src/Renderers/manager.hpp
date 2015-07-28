@@ -6,7 +6,6 @@
 
 #include <NptSockets.h>
 #include <NptHttp.h>
-#include <pire/pire.h>
 
 #include "Renderer.pb.h"
 

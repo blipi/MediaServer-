@@ -12,9 +12,13 @@ MediaServerPP::MediaServerPP():
     _name("MediaServer++"),
     _serverInterface(nullptr)
 {
+    MainHandler* mainHandler = new MainHandler();
+    mainHandler->addHandler(new DiscoverHandler(), "/discover/fetch", true, true);
+
     // HACK: Hardcoded port
     _server = new PLT_HttpServer(NPT_IpAddress::Any, 8082);
-    _server->AddRequestHandler(new MainHandler(), "/", true);
+    _server->SetServerHeader("UPnP/1.0 DLNADOC/1.50 MediaServerPP/0.1");
+    _server->AddRequestHandler(mainHandler, "/", true);
     _server->Start();
 }
 
